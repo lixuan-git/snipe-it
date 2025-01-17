@@ -16,6 +16,7 @@ use App\Http\Controllers\ManufacturersController;
 use App\Http\Controllers\ModalController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ReportsController;
+use App\Http\Controllers\ReportTemplatesController;
 use App\Http\Controllers\SettingsController;
 use App\Http\Controllers\StatuslabelsController;
 use App\Http\Controllers\SuppliersController;
@@ -23,6 +24,7 @@ use App\Http\Controllers\ViewAssetsController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\ForgotPasswordController;
 use App\Http\Controllers\Auth\ResetPasswordController;
+use App\Livewire\Importer;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
 
@@ -52,9 +54,24 @@ Route::group(['middleware' => 'auth'], function () {
     /*
      * Locations
      */
-
     Route::group(['prefix' => 'locations', 'middleware' => ['auth']], function () {
-        
+
+        Route::post(
+            'bulkdelete',
+            [LocationsController::class, 'postBulkDelete']
+        )->name('locations.bulkdelete.show');
+
+        Route::post(
+            'bulkedit',
+            [LocationsController::class, 'postBulkDeleteStore']
+        )->name('locations.bulkdelete.store');
+
+        Route::post(
+            '{location}/restore',
+            [LocationsController::class, 'postRestore']
+        )->name('locations.restore');
+
+
         Route::get('{locationId}/clone',
             [LocationsController::class, 'getClone']
         )->name('clone/location');
@@ -68,6 +85,7 @@ Route::group(['middleware' => 'auth'], function () {
             '{locationId}/printallassigned',
             [LocationsController::class, 'print_all_assigned']
         )->name('locations.print_all_assigned');
+
     });
 
     Route::resource('locations', LocationsController::class, [
@@ -183,9 +201,6 @@ Route::group(['prefix' => 'admin', 'middleware' => ['auth', 'authorize:superuser
     Route::get('asset_tags', [SettingsController::class, 'getAssetTags'])->name('settings.asset_tags.index');
     Route::post('asset_tags', [SettingsController::class, 'postAssetTags'])->name('settings.asset_tags.save');
 
-    Route::get('barcodes', [SettingsController::class, 'getBarcodes'])->name('settings.barcodes.index');
-    Route::post('barcodes', [SettingsController::class, 'postBarcodes'])->name('settings.barcodes.save');
-
     Route::get('labels', [SettingsController::class, 'getLabels'])->name('settings.labels.index');
     Route::post('labels', [SettingsController::class, 'postLabels'])->name('settings.labels.save');
 
@@ -224,6 +239,11 @@ Route::group(['prefix' => 'admin', 'middleware' => ['auth', 'authorize:superuser
             [SettingsController::class, 'postUploadBackup']
         )->name('settings.backups.upload');
 
+        // Handle redirect from after POST request from backup restore
+        Route::get('/restore/{filename?}', function () {
+            return redirect(route('settings.backups.index'));
+        });
+
         Route::get('/', [SettingsController::class, 'getBackups'])->name('settings.backups.index');
     });
 
@@ -245,7 +265,7 @@ Route::group(['prefix' => 'admin', 'middleware' => ['auth', 'authorize:superuser
 */
 
 Route::get('/import',
-    \App\Http\Livewire\Importer::class
+    Importer::class
 )->middleware('auth')->name('imports.index');
 
 /*
@@ -357,6 +377,14 @@ Route::group(['middleware' => ['auth']], function () {
     Route::get('reports/custom', [ReportsController::class, 'getCustomReport'])->name('reports/custom');
     Route::post('reports/custom', [ReportsController::class, 'postCustom']);
 
+    Route::prefix('reports/templates')->name('report-templates')->group(function () {
+        Route::post('/', [ReportTemplatesController::class, 'store'])->name('.store');
+        Route::get('/{reportTemplate}', [ReportTemplatesController::class, 'show'])->name('.show');
+        Route::get('/{reportTemplate}/edit', [ReportTemplatesController::class, 'edit'])->name('.edit');
+        Route::post('/{reportTemplate}', [ReportTemplatesController::class, 'update'])->name('.update');
+        Route::delete('/{reportTemplate}', [ReportTemplatesController::class, 'destroy'])->name('.destroy');
+    });
+
     Route::get(
         'reports/activity',
         [ReportsController::class, 'getActivityReport']
@@ -368,8 +396,8 @@ Route::group(['middleware' => ['auth']], function () {
         'reports/unaccepted_assets/{deleted?}',
         [ReportsController::class, 'getAssetAcceptanceReport']
     )->name('reports/unaccepted_assets');
-    Route::get(
-        'reports/unaccepted_assets/{acceptanceId}/sent_reminder',
+    Route::post(
+        'reports/unaccepted_assets/sent_reminder',
         [ReportsController::class, 'sentAssetAcceptanceReminder']
     )->name('reports/unaccepted_assets_sent_reminder');
     Route::delete(
@@ -513,12 +541,15 @@ Route::group(['middleware' => 'web'], function () {
     )->name('logout.post');
 });
 
-//Auth::routes();
 
-Route::get(
-    '/health', 
+/**
+ * Health check route - skip middleware
+ */
+Route::withoutMiddleware(['web'])->get(
+    '/health',
     [HealthController::class, 'get']
 )->name('health');
+
 
 Route::middleware(['auth'])->get(
     '/',

@@ -8,7 +8,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>{{ ($snipeSettings) && ($snipeSettings->site_name) ? $snipeSettings->site_name : 'Snipe-IT' }}</title>
 
-    <link rel="shortcut icon" type="image/ico" href="{{ ($snipeSettings) && ($snipeSettings->favicon!='') ?  Storage::disk('public')->url('').e($snipeSettings->favicon) : 'favicon.ico' }} ">
+    <link rel="shortcut icon" type="image/ico" href="{{ ($snipeSettings) && ($snipeSettings->favicon!='') ?  Storage::disk('public')->url(e($snipeSettings->favicon)) : config('app.url').'/favicon.ico' }}">
     {{-- stylesheets --}}
     <link rel="stylesheet" href="{{ url(mix('css/dist/all.css')) }}">
 
@@ -19,7 +19,6 @@
             }
         };
     </script>
-    @livewireStyles
 
 
     @if (($snipeSettings) && ($snipeSettings->header_color))
@@ -33,13 +32,6 @@
         .skin-blue .sidebar-menu > li:hover > a, .skin-blue .sidebar-menu > li.active > a {
         border-left-color: {{ $snipeSettings->header_color }};
         }
-
-        .btn-primary {
-        background-color: {{ $snipeSettings->header_color }};
-        border-color: {{ $snipeSettings->header_color }};
-        }
-
-
         </style>
     @endif
 
@@ -74,7 +66,6 @@
 
 
     @stack('js')
-    @livewireScripts
 </body>
 
 </html>

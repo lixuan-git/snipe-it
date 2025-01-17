@@ -50,13 +50,6 @@ class LabelWriter_30252 extends LabelWriter
             );
             $currentX += $barcodeSize + self::BARCODE_MARGIN;
             $usableWidth -= $barcodeSize + self::BARCODE_MARGIN;
-        } else {
-            static::writeText(
-                $pdf, $record->get('tag'),
-                $pa->x1, $pa->y2 - self::TAG_SIZE,
-                'freemono', 'b', self::TAG_SIZE, 'R',
-                $usableWidth, self::TAG_SIZE, true, 0
-            );
         }
 
         if ($record->has('title')) {
@@ -86,5 +79,13 @@ class LabelWriter_30252 extends LabelWriter
             );
             $currentY += self::FIELD_SIZE + self::FIELD_MARGIN;
         }
+
+        if ($record->has('barcode1d')) {
+            static::write1DBarcode(
+                $pdf, $record->get('barcode1d')->content, $record->get('barcode1d')->type,
+                $currentX, $barcodeSize + self::BARCODE_MARGIN, $usableWidth - self::TAG_SIZE, self::TAG_SIZE
+            );
+        }
     }
+
 }
