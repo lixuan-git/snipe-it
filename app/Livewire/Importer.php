@@ -203,6 +203,7 @@ class Importer extends Component
         ];
 
         $this->assets_fields = [
+            'id' => trans('general.id'),
             'asset_eol_date' => trans('admin/hardware/form.eol_date'),
             'asset_model' => trans('general.model_name'),
             'asset_notes' => trans('general.item_notes', ['item' => trans('admin/hardware/general.asset')]),
@@ -329,6 +330,8 @@ class Importer extends Component
             'location' => trans('general.location'),
             'manager_first_name' => trans('general.importer.manager_first_name'),
             'manager_last_name' => trans('general.importer.manager_last_name'),
+            'manager_employee_num' => trans('general.importer.manager_employee_num'),
+            'manager_username' => trans('general.importer.manager_username'),
             'notes' => trans('general.notes'),
             'phone_number' => trans('admin/users/table.phone'),
             'remote' => trans('admin/users/general.remote'),
